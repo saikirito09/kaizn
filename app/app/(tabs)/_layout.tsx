@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform } from 'react-native';
-import { LayoutDashboard, PlaneTakeoff } from 'lucide-react-native';
+import { LayoutDashboard, LineChart } from 'lucide-react-native';
 
 import { HapticTab } from '@/components/HapticTab';
 
@@ -27,10 +27,10 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="analysis"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <PlaneTakeoff size={24} color={color} />,
+          title: 'Analysis',
+          tabBarIcon: ({ color }) => <LineChart size={24} color={color} />,
         }}
       />
     </Tabs>
