@@ -14,12 +14,76 @@ import {
 } from 'lucide-react-native';
 import { LineChart, BarChart, ProgressChart } from 'react-native-chart-kit';
 
+// ----- Type Definitions for Custom Components -----
+
+interface MetricCardProps {
+  icon: React.ComponentType<{ size: number; className?: string }>;
+  label: string;
+  value: string;
+  trend?: string;
+  color: string;
+}
+
+const MetricCard: React.FC<MetricCardProps> = ({ icon: Icon, label, value, trend, color }) => (
+  <View className="bg-zinc-50 dark:bg-black/20 p-4 rounded-2xl flex-1 mr-2 last:mr-0">
+    <View className="flex-row items-center justify-between mb-2">
+      <Icon size={16} className={`text-${color}-600 dark:text-${color}-400`} />
+      {trend && (
+        <View
+          className={`flex-row items-center bg-${color}-50 dark:bg-${color}-900/20 px-2 py-1 rounded-full`}
+        >
+          <TrendingUp size={12} className={`text-${color}-600 dark:text-${color}-400`} />
+          <Text className={`ml-1 text-xs font-medium text-${color}-600 dark:text-${color}-400`}>
+            {trend}
+          </Text>
+        </View>
+      )}
+    </View>
+    <Text className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">{label}</Text>
+    <Text className="text-xl font-semibold text-zinc-900 dark:text-white">{value}</Text>
+  </View>
+);
+
+interface GoalCardProps {
+  icon: React.ComponentType<{ size: number; className?: string }>;
+  title: string;
+  progress: number;
+  target: string;
+  color: string;
+}
+
+const GoalCard: React.FC<GoalCardProps> = ({ icon: Icon, title, progress, target, color }) => (
+  <View className="flex-row items-center bg-zinc-50 dark:bg-black/20 p-4 rounded-2xl mb-2">
+    <View
+      className={`w-10 h-10 rounded-full bg-${color}-100 dark:bg-${color}-900/30 items-center justify-center mr-3`}
+    >
+      <Icon size={20} className={`text-${color}-600 dark:text-${color}-400`} />
+    </View>
+    <View className="flex-1">
+      <Text className="text-sm font-medium text-zinc-900 dark:text-white mb-1">{title}</Text>
+      <View className="flex-row items-center">
+        <View className="flex-1 h-2 bg-zinc-200 dark:bg-zinc-700 rounded-full mr-3">
+          <View
+            className={`h-2 bg-${color}-500 rounded-full`}
+            style={{ width: `${progress}%` }}
+          />
+        </View>
+        <Text className="text-xs text-zinc-600 dark:text-zinc-400">
+          {progress}% of {target}
+        </Text>
+      </View>
+    </View>
+  </View>
+);
+
+// ----- Main Analytics Screen Component -----
+
 const AnalyticsScreen: React.FC = () => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const screenWidth = Dimensions.get('window').width;
 
-  // Data for charts
+  // Chart data definitions
   const weightData = {
     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
     datasets: [
@@ -71,7 +135,7 @@ const AnalyticsScreen: React.FC = () => {
   };
 
   const healthScoreData = {
-    // Example values (should be between 0 and 1)
+    // Values between 0 and 1 (example data)
     data: [0.8, 0.7, 0.9]
   };
 
@@ -94,87 +158,6 @@ const AnalyticsScreen: React.FC = () => {
     }
   };
 
-  // Quick stats card component
-  const MetricCard = ({
-    icon: Icon,
-    label,
-    value,
-    trend,
-    color
-  }: {
-    icon: React.ComponentType<{ size: number; className?: string }>;
-    label: string;
-    value: string;
-    trend?: string;
-    color: string;
-  }) => (
-    <View className="bg-zinc-50 dark:bg-black/20 p-4 rounded-2xl flex-1 mr-2 last:mr-0">
-      <View className="flex-row items-center justify-between mb-2">
-        <Icon size={16} className={`text-${color}-600 dark:text-${color}-400`} />
-        {trend && (
-          <View
-            className={`flex-row items-center bg-${color}-50 dark:bg-${color}-900/20 px-2 py-1 rounded-full`}
-          >
-            <TrendingUp
-              size={12}
-              className={`text-${color}-600 dark:text-${color}-400`}
-            />
-            <Text
-              className={`ml-1 text-xs font-medium text-${color}-600 dark:text-${color}-400`}
-            >
-              {trend}
-            </Text>
-          </View>
-        )}
-      </View>
-      <Text className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">
-        {label}
-      </Text>
-      <Text className="text-xl font-semibold text-zinc-900 dark:text-white">
-        {value}
-      </Text>
-    </View>
-  );
-
-  // Goal progress card component
-  const GoalCard = ({
-    icon: Icon,
-    title,
-    progress,
-    target,
-    color
-  }: {
-    icon: React.ComponentType<{ size: number; className?: string }>;
-    title: string;
-    progress: number;
-    target: string;
-    color: string;
-  }) => (
-    <View className="flex-row items-center bg-zinc-50 dark:bg-black/20 p-4 rounded-2xl mb-2">
-      <View
-        className={`w-10 h-10 rounded-full bg-${color}-100 dark:bg-${color}-900/30 items-center justify-center mr-3`}
-      >
-        <Icon size={20} className={`text-${color}-600 dark:text-${color}-400`} />
-      </View>
-      <View className="flex-1">
-        <Text className="text-sm font-medium text-zinc-900 dark:text-white mb-1">
-          {title}
-        </Text>
-        <View className="flex-row items-center">
-          <View className="flex-1 h-2 bg-zinc-200 dark:bg-zinc-700 rounded-full mr-3">
-            <View
-              className={`h-2 bg-${color}-500 rounded-full`}
-              style={{ width: `${progress}%` }}
-            />
-          </View>
-          <Text className="text-xs text-zinc-600 dark:text-zinc-400">
-            {progress}% of {target}
-          </Text>
-        </View>
-      </View>
-    </View>
-  );
-
   return (
     <SafeAreaView className="flex-1 bg-zinc-50 dark:bg-zinc-900">
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -189,39 +172,11 @@ const AnalyticsScreen: React.FC = () => {
         </View>
 
         {/* Quick Stats */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          className="px-4 mb-4"
-        >
-          <MetricCard
-            icon={Scale}
-            label="Weight"
-            value="76.5kg"
-            trend="-0.3"
-            color="violet"
-          />
-          <MetricCard
-            icon={Target}
-            label="BMI"
-            value="23.5"
-            trend="-0.1"
-            color="emerald"
-          />
-          <MetricCard
-            icon={Heart}
-            label="Health Score"
-            value="85%"
-            trend="+5%"
-            color="rose"
-          />
-          <MetricCard
-            icon={Flame}
-            label="Calories"
-            value="2,400"
-            trend="+200"
-            color="orange"
-          />
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 mb-4">
+          <MetricCard icon={(props) => <Scale {...props} />} label="Weight" value="76.5kg" trend="-0.3" color="violet" />
+          <MetricCard icon={(props) => <Target {...props} />} label="BMI" value="23.5" trend="-0.1" color="emerald" />
+          <MetricCard icon={(props) => <Heart {...props} />} label="Health Score" value="85%" trend="+5%" color="rose" />
+          <MetricCard icon={(props) => <Flame {...props} />} label="Calories" value="2,400" trend="+200" color="orange" />
         </ScrollView>
 
         <View className="px-4">
@@ -255,25 +210,19 @@ const AnalyticsScreen: React.FC = () => {
 
             <View className="flex-row justify-between bg-zinc-50 dark:bg-black/20 p-4 rounded-2xl mt-6">
               <View className="items-center">
-                <Text className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">
-                  Starting
-                </Text>
+                <Text className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Starting</Text>
                 <Text className="text-xl font-semibold text-violet-600 dark:text-violet-400">
                   82kg
                 </Text>
               </View>
               <View className="items-center">
-                <Text className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">
-                  Current
-                </Text>
+                <Text className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Current</Text>
                 <Text className="text-xl font-semibold text-violet-600 dark:text-violet-400">
                   76.5kg
                 </Text>
               </View>
               <View className="items-center">
-                <Text className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">
-                  Goal
-                </Text>
+                <Text className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Goal</Text>
                 <Text className="text-xl font-semibold text-violet-600 dark:text-violet-400">
                   75kg
                 </Text>
@@ -294,21 +243,21 @@ const AnalyticsScreen: React.FC = () => {
             </View>
 
             <GoalCard
-              icon={Scale}
+              icon={props => <Scale {...props} />}
               title="Weight Loss Goal"
               progress={85}
               target="75kg"
               color="violet"
             />
             <GoalCard
-              icon={Dumbbell}
+              icon={props => <Dumbbell {...props} />}
               title="Strength Training"
               progress={70}
               target="12 sessions"
               color="blue"
             />
             <GoalCard
-              icon={Apple}
+              icon={props => <Apple {...props} />}
               title="Healthy Diet Score"
               progress={90}
               target="score"
@@ -333,36 +282,23 @@ const AnalyticsScreen: React.FC = () => {
               radius={32}
               chartConfig={{
                 ...chartConfig,
-                color: (opacity = 1) =>
-                  `rgba(244, 63, 94, ${opacity})`
+                color: (opacity = 1) => `rgba(244, 63, 94, ${opacity})`
               }}
               hideLegend={false}
             />
 
             <View className="flex-row justify-between bg-zinc-50 dark:bg-black/20 p-4 rounded-2xl mt-6">
               <View className="items-center">
-                <Text className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">
-                  Diet
-                </Text>
-                <Text className="text-xl font-semibold text-rose-600 dark:text-rose-400">
-                  80%
-                </Text>
+                <Text className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Diet</Text>
+                <Text className="text-xl font-semibold text-rose-600 dark:text-rose-400">80%</Text>
               </View>
               <View className="items-center">
-                <Text className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">
-                  Activity
-                </Text>
-                <Text className="text-xl font-semibold text-rose-600 dark:text-rose-400">
-                  70%
-                </Text>
+                <Text className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Activity</Text>
+                <Text className="text-xl font-semibold text-rose-600 dark:text-rose-400">70%</Text>
               </View>
               <View className="items-center">
-                <Text className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">
-                  Sleep
-                </Text>
-                <Text className="text-xl font-semibold text-rose-600 dark:text-rose-400">
-                  90%
-                </Text>
+                <Text className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Sleep</Text>
+                <Text className="text-xl font-semibold text-rose-600 dark:text-rose-400">90%</Text>
               </View>
             </View>
           </View>
@@ -398,37 +334,25 @@ const AnalyticsScreen: React.FC = () => {
 
             <View className="flex-row justify-between bg-zinc-50 dark:bg-black/20 p-4 rounded-2xl mt-6">
               <View className="items-center">
-                <Text className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">
-                  Protein
-                </Text>
+                <Text className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Protein</Text>
                 <Text className="text-xl font-semibold text-emerald-600 dark:text-emerald-400">
                   156g
                 </Text>
-                <Text className="text-xs text-zinc-500 dark:text-zinc-500">
-                  Goal: 160g
-                </Text>
+                <Text className="text-xs text-zinc-500 dark:text-zinc-500">Goal: 160g</Text>
               </View>
               <View className="items-center">
-                <Text className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">
-                  Carbs
-                </Text>
+                <Text className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Carbs</Text>
                 <Text className="text-xl font-semibold text-emerald-600 dark:text-emerald-400">
                   245g
                 </Text>
-                <Text className="text-xs text-zinc-500 dark:text-zinc-500">
-                  Goal: 250g
-                </Text>
+                <Text className="text-xs text-zinc-500 dark:text-zinc-500">Goal: 250g</Text>
               </View>
               <View className="items-center">
-                <Text className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">
-                  Fat
-                </Text>
+                <Text className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Fat</Text>
                 <Text className="text-xl font-semibold text-emerald-600 dark:text-emerald-400">
                   65g
                 </Text>
-                <Text className="text-xs text-zinc-500 dark:text-zinc-500">
-                  Goal: 70g
-                </Text>
+                <Text className="text-xs text-zinc-500 dark:text-zinc-500">Goal: 70g</Text>
               </View>
             </View>
           </View>
@@ -470,28 +394,16 @@ const AnalyticsScreen: React.FC = () => {
 
             <View className="flex-row justify-between bg-zinc-50 dark:bg-black/20 p-4 rounded-2xl mt-6">
               <View>
-                <Text className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">
-                  Total Sessions
-                </Text>
-                <Text className="text-xl font-semibold text-zinc-900 dark:text-white">
-                  16
-                </Text>
+                <Text className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Total Sessions</Text>
+                <Text className="text-xl font-semibold text-zinc-900 dark:text-white">16</Text>
               </View>
               <View>
-                <Text className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">
-                  Active Time
-                </Text>
-                <Text className="text-xl font-semibold text-zinc-900 dark:text-white">
-                  5.2h
-                </Text>
+                <Text className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Active Time</Text>
+                <Text className="text-xl font-semibold text-zinc-900 dark:text-white">5.2h</Text>
               </View>
               <View>
-                <Text className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">
-                  Volume
-                </Text>
-                <Text className="text-xl font-semibold text-zinc-900 dark:text-white">
-                  16.8k
-                </Text>
+                <Text className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Volume</Text>
+                <Text className="text-xl font-semibold text-zinc-900 dark:text-white">16.8k</Text>
               </View>
             </View>
           </View>
