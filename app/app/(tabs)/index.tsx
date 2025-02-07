@@ -93,7 +93,19 @@ const DateStrip = () => {
   );
 };
 
-const MacroProgressRing = ({ progress, color, size = 90, isDark, children }) => (
+const MacroProgressRing = ({ 
+  progress, 
+  color, 
+  size = 90, 
+  isDark, 
+  children 
+}: {
+  progress: number;
+  color: string;
+  size?: number;
+  isDark: boolean;
+  children: React.ReactNode;
+}) => (
   <View style={{ width: size, height: size }} className="items-center justify-center">
     <View 
       className="absolute rounded-full"
@@ -123,7 +135,17 @@ const MacroProgressRing = ({ progress, color, size = 90, isDark, children }) => 
   </View>
 );
 
-const CalorieBar = ({ consumed, burned, goal, isDark }) => {
+const CalorieBar = ({ 
+  consumed, 
+  burned, 
+  goal, 
+  isDark 
+}: {
+  consumed: number;
+  burned: number;
+  goal: number;
+  isDark: boolean;
+}) => {
   const consumedWidth = Math.min((consumed / goal) * 100, 100);
   const burnedWidth = Math.min((burned / goal) * 100, 100);
   
