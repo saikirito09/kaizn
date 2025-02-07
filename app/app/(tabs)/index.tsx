@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   ScrollView,
   Text,
@@ -10,9 +10,21 @@ import {
   useColorScheme,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Camera, Plus, ChevronRight, Flame } from 'lucide-react-native';
+import { 
+  Camera, 
+  Plus, 
+  ChevronRight, 
+  Flame,
+  Dumbbell,
+  Timer,
+  ArrowDown,
+  ArrowUp,
+  Utensils,
+  Sparkles,
+  Scale,
+  // Remove Water import
+} from 'lucide-react-native';
 
-// DateStrip Component
 const DateStrip = () => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -24,169 +36,210 @@ const DateStrip = () => {
     for (let i = -3; i <= 3; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
-      
       dates.push({
         date: date.getDate(),
         day: date.toLocaleDateString('en-US', { weekday: 'short' }),
         isToday: i === 0,
-        // Simulate completed days (in real app, this would come from actual data)
-        isCompleted: i < 0 ? Math.random() > 0.3 : false
+        activities: i < 0 ? {
+          workout: Math.random() > 0.5,
+          nutrition: Math.random() > 0.3,
+        } : { workout: false, nutrition: false }
       });
     }
     return dates;
   }, []);
 
-  const streak = useMemo(() => {
-    // Simulate a streak count (in real app, this would be calculated from actual data)
-    return 12;
-  }, []);
-
   return (
-    <View className="mb-6">
-      <View className="flex-row items-center justify-between px-4 mb-4">
-        <View>
-          <Text className="text-2xl font-semibold text-zinc-900 dark:text-white">
-            {new Date().toLocaleDateString('en-US', { 
-              weekday: 'long',
-              month: 'long',
-              day: 'numeric'
-            })}
-          </Text>
-          <Text className="text-sm text-zinc-600 dark:text-zinc-400">
-            {new Date().toLocaleTimeString('en-US', {
-              hour: 'numeric',
-              minute: '2-digit',
-              hour12: true
-            })}
-          </Text>
-        </View>
-        <Pressable 
-          className="flex-row items-center bg-orange-100 dark:bg-orange-900/30 px-3 py-1.5 rounded-full active:opacity-80"
+    <ScrollView 
+      horizontal 
+      showsHorizontalScrollIndicator={false}
+      className="px-4 py-2"
+    >
+      {dateInfo.map((date, index) => (
+        <Pressable
+          key={index}
+          className="mr-3 items-center active:opacity-80"
           android_ripple={{ color: isDark ? '#ffffff20' : '#00000010' }}
         >
-          <Flame size={16} className="text-orange-600 dark:text-orange-400" />
-          <Text className="ml-1.5 font-medium text-orange-600 dark:text-orange-400">
-            {streak} Day Streak!
+          <Text className="text-xs text-zinc-600 dark:text-zinc-400 mb-2">
+            {date.day}
           </Text>
-        </Pressable>
-      </View>
-
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        className="px-4"
-      >
-        {dateInfo.map((date, index) => (
-          <Pressable
-            key={index}
-            className="mr-3 items-center active:opacity-80"
-            android_ripple={{ color: isDark ? '#ffffff20' : '#00000010' }}
+          <View
+            className={`w-12 h-12 rounded-2xl items-center justify-center mb-1
+              ${date.isToday ? 
+                'bg-violet-500 dark:bg-violet-500' : 
+                'bg-zinc-100 dark:bg-zinc-800'}`}
           >
-            <Text className="text-xs text-zinc-600 dark:text-zinc-400 mb-2">
-              {date.day}
-            </Text>
-            <View
-              className={`w-12 h-12 rounded-2xl items-center justify-center mb-1
+            <Text
+              className={`text-base font-medium
                 ${date.isToday ? 
-                  'bg-emerald-500 dark:bg-emerald-500' : 
-                  'bg-zinc-100 dark:bg-zinc-800'}`}
+                  'text-white' : 
+                  'text-zinc-900 dark:text-white'}`}
             >
-              <Text
-                className={`text-base font-medium
-                  ${date.isToday ? 
-                    'text-white' : 
-                    'text-zinc-900 dark:text-white'}`}
-              >
-                {date.date}
-              </Text>
-            </View>
-            {date.isCompleted && (
+              {date.date}
+            </Text>
+          </View>
+          <View className="flex-row space-x-1">
+            {date.activities.workout && (
+              <View className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+            )}
+            {date.activities.nutrition && (
               <View className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
             )}
-          </Pressable>
-        ))}
-      </ScrollView>
+          </View>
+        </Pressable>
+      ))}
+    </ScrollView>
+  );
+};
+
+const MacroProgressRing = ({ progress, color, size = 90, isDark, children }) => (
+  <View style={{ width: size, height: size }} className="items-center justify-center">
+    <View 
+      className="absolute rounded-full"
+      style={{
+        width: size,
+        height: size,
+        borderWidth: 4,
+        borderColor: isDark ? '#27272a' : '#f4f4f5',
+      }}
+    />
+    <View 
+      className="absolute rounded-full"
+      style={{
+        width: size,
+        height: size,
+        borderWidth: 4,
+        borderLeftColor: 'transparent',
+        borderBottomColor: 'transparent',
+        borderRightColor: color,
+        borderTopColor: color,
+        transform: [{ rotate: `${progress * 360}deg` }],
+      }}
+    />
+    <View className="absolute inset-0 items-center justify-center">
+      {children}
+    </View>
+  </View>
+);
+
+const CalorieBar = ({ consumed, burned, goal, isDark }) => {
+  const consumedWidth = Math.min((consumed / goal) * 100, 100);
+  const burnedWidth = Math.min((burned / goal) * 100, 100);
+  
+  return (
+    <View className="h-4 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+      <View 
+        className="absolute h-full bg-emerald-500/20"
+        style={{ width: `${consumedWidth}%` }}
+      />
+      <View 
+        className="absolute h-full bg-blue-500/20"
+        style={{ width: `${burnedWidth}%`, right: 0 }}
+      />
+      <View className="absolute inset-0 flex-row justify-between items-center px-2">
+        <Text className="text-xs font-medium text-emerald-700 dark:text-emerald-300">
+          {consumed}
+        </Text>
+        <Text className="text-xs font-medium text-blue-700 dark:text-blue-300">
+          {burned}
+        </Text>
+      </View>
     </View>
   );
 };
+
+const ActivityMetric = ({ 
+  icon: Icon, 
+  color, 
+  darkColor, 
+  label, 
+  value, 
+  sublabel 
+}: {
+  icon: React.ElementType;
+  color: string;
+  darkColor: string;
+  label: string;
+  value: React.ReactNode;
+  sublabel: string;
+}) => (
+  <View className="flex-row items-center justify-between">
+    <View className="flex-row items-center">
+      <View className={`w-10 h-10 rounded-full bg-${color}-100 dark:bg-${color}-900/30 items-center justify-center mr-3`}>
+        <Icon size={20} className={`text-${color}-600 dark:text-${color}-400`} />
+      </View>
+      <View>
+        <Text className="text-sm font-medium text-zinc-900 dark:text-white">
+          {label}
+        </Text>
+        <Text className="text-xs text-zinc-600 dark:text-zinc-400">
+          {sublabel}
+        </Text>
+      </View>
+    </View>
+    {value}
+  </View>
+);
+
+// Remove QuickLogButton component entirely
+
+// Remove WaterTracker component entirely
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
 
-  const [isRefreshing, setIsRefreshing] = React.useState(false);
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  // Remove loading states
+  // const [isLoadingWorkout, setIsLoadingWorkout] = useState(false);
+  // const [isLoadingMeal, setIsLoadingMeal] = useState(false);
 
-  const dailyProgress = useMemo(() => ({
-    calories: {
-      current: 1431,
-      target: 3000,
-      percentage: 47.7
+  const dailyStats = useMemo(() => ({
+    summary: {
+      calories: {
+        goal: 2000,
+        consumed: 1431,
+        burned: 840,
+        net: 591
+      },
+      protein: {
+        current: 85,
+        goal: 150,
+        percentage: 0.57
+      },
+      carbs: {
+        current: 162,
+        goal: 250,
+        percentage: 0.65
+      },
+      fat: {
+        current: 57,
+        goal: 70,
+        percentage: 0.81
+      }
     },
-    macros: {
-      protein: { current: 85, target: 240 },
-      carbs: { current: 162, target: 300 },
-      fat: { current: 57, target: 100 }
+    workouts: {
+      completed: 2,
+      duration: 85,
+      remaining: 1
+    },
+    meals: {
+      logged: 3,
+      remaining: 2,
+      nextIn: '2h 30m'
     }
   }), []);
-
-  const recentMeals = useMemo(() => ([
-    {
-      id: 1,
-      name: "Breakfast",
-      time: "8:30 AM",
-      calories: 450,
-      imageUrl: null,
-    },
-    {
-      id: 2,
-      name: "Morning Snack",
-      time: "10:45 AM",
-      calories: 180,
-      imageUrl: null,
-    }
-  ]), []);
 
   const onRefresh = useCallback(() => {
     setIsRefreshing(true);
     setTimeout(() => setIsRefreshing(false), 1500);
   }, []);
 
-  const handleAddFood = useCallback(() => {
-    setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 1000);
-  }, []);
-
-  const ProgressBar = ({ value, color }) => (
-    <View className="h-1.5 w-full rounded-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
-      <View 
-        className={`h-full rounded-full ${color}`}
-        style={{ width: `${value}%` }}
-      />
-    </View>
-  );
-
-  const MacroCard = ({ label, current, target, color }) => {
-    const percentage = (current / target) * 100;
-    
-    return (
-      <View className="flex-1 mx-1">
-        <View className="bg-white dark:bg-zinc-900 rounded-2xl p-3 shadow-sm">
-          <Text className="text-zinc-600 dark:text-zinc-400 text-sm mb-2">
-            {label}
-          </Text>
-          <Text className="text-zinc-900 dark:text-white text-lg font-semibold mb-1">
-            {current}
-            <Text className="text-zinc-500 dark:text-zinc-400 text-sm font-normal">
-              /{target}g
-            </Text>
-          </Text>
-          <ProgressBar value={percentage} color={color} />
-        </View>
-      </View>
-    );
-  };
+  // Remove handlers
+  // const handleLogMeal = useCallback...
+  // const handleLogWorkout = useCallback...
 
   return (
     <SafeAreaView 
@@ -204,121 +257,180 @@ export default function HomeScreen() {
         }
         showsVerticalScrollIndicator={false}
       >
+        {/* Header */}
+        <View className="px-4 pt-2 pb-4">
+          <View className="flex-row items-center justify-between">
+            <View>
+              <Text className="text-2xl font-semibold text-zinc-900 dark:text-white">
+                {new Date().toLocaleDateString('en-US', { 
+                  weekday: 'long',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </Text>
+              <Text className="text-sm text-zinc-600 dark:text-zinc-400">
+                {new Date().toLocaleTimeString('en-US', {
+                  hour: 'numeric',
+                  minute: '2-digit',
+                  hour12: true
+                })}
+              </Text>
+            </View>
+            <Pressable 
+              className="flex-row items-center bg-violet-100 dark:bg-violet-900/30 px-3 py-1.5 rounded-full active:opacity-80"
+              android_ripple={{ color: isDark ? '#ffffff20' : '#00000010' }}
+            >
+              <Sparkles size={16} className="text-violet-600 dark:text-violet-400" />
+              <Text className="ml-1.5 font-medium text-violet-600 dark:text-violet-400">
+                8 Day Streak
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+
         <DateStrip />
 
-        {/* Main Content */}
+        {/* Daily Overview Card */}
         <View className="px-4">
-          {/* Calories Card */}
-          <Pressable 
-            className="active:opacity-80"
-            android_ripple={{ color: isDark ? '#ffffff20' : '#00000010' }}
-          >
-            <View className="bg-white dark:bg-zinc-900 rounded-3xl p-6 mb-6 shadow-sm">
-              <View className="flex-row items-center justify-between mb-4">
-                <Text className="text-base text-zinc-600 dark:text-zinc-400">
-                  Daily Goal
+          <View className="bg-white dark:bg-zinc-900 rounded-3xl p-6 mb-4 shadow-sm">
+            <Text className="text-lg font-semibold text-zinc-900 dark:text-white mb-4">
+              Daily Overview
+            </Text>
+            
+            <View className="mb-6">
+              <View className="flex-row justify-between mb-2">
+                <Text className="text-sm text-zinc-600 dark:text-zinc-400">
+                  {dailyStats.summary.calories.consumed} cal in • {dailyStats.summary.calories.burned} cal out
                 </Text>
-                <View className="bg-emerald-100 dark:bg-emerald-900/30 px-3 py-1 rounded-full">
-                  <Text className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
-                    {dailyProgress.calories.percentage}% Complete
-                  </Text>
-                </View>
-              </View>
-              
-              <View className="items-center mb-4">
-                <Text className="text-4xl font-bold text-zinc-900 dark:text-white mb-1">
-                  {dailyProgress.calories.current.toLocaleString()}
-                </Text>
-                <Text className="text-base text-zinc-600 dark:text-zinc-400">
-                  of {dailyProgress.calories.target.toLocaleString()} calories
+                <Text className="text-sm font-medium text-zinc-900 dark:text-white">
+                  Goal: {dailyStats.summary.calories.goal} cal
                 </Text>
               </View>
-
-              <ProgressBar 
-                value={dailyProgress.calories.percentage} 
-                color="bg-emerald-500"
+              <CalorieBar 
+                consumed={dailyStats.summary.calories.consumed}
+                burned={dailyStats.summary.calories.burned}
+                goal={dailyStats.summary.calories.goal}
+                isDark={isDark}
               />
             </View>
-          </Pressable>
 
-          {/* Macros */}
-          <View className="flex-row mx-[-4px] mb-6">
-            <MacroCard 
-              label="Protein"
-              current={dailyProgress.macros.protein.current}
-              target={dailyProgress.macros.protein.target}
-              color="bg-blue-500"
-            />
-            <MacroCard 
-              label="Carbs"
-              current={dailyProgress.macros.carbs.current}
-              target={dailyProgress.macros.carbs.target}
-              color="bg-amber-500"
-            />
-            <MacroCard 
-              label="Fat"
-              current={dailyProgress.macros.fat.current}
-              target={dailyProgress.macros.fat.target}
-              color="bg-rose-500"
-            />
+            <Text className="text-base font-medium text-zinc-900 dark:text-white mb-4">
+              Macronutrients
+            </Text>
+            
+            <View className="flex-row justify-between">
+              <View className="items-center">
+                <MacroProgressRing 
+                  progress={dailyStats.summary.protein.percentage} 
+                  color="#3b82f6"
+                  isDark={isDark}
+                >
+                  <Text className="text-lg font-semibold text-zinc-900 dark:text-white">
+                    {dailyStats.summary.protein.current}g
+                  </Text>
+                </MacroProgressRing>
+                <Text className="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
+                  Protein
+                </Text>
+                <Text className="text-xs text-zinc-500 dark:text-zinc-500">
+                  Goal: {dailyStats.summary.protein.goal}g
+                </Text>
+              </View>
+              
+              <View className="items-center">
+                <MacroProgressRing 
+                  progress={dailyStats.summary.carbs.percentage} 
+                  color="#10b981"
+                  isDark={isDark}
+                >
+                  <Text className="text-lg font-semibold text-zinc-900 dark:text-white">
+                    {dailyStats.summary.carbs.current}g
+                  </Text>
+                </MacroProgressRing>
+                <Text className="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
+                  Carbs
+                </Text>
+                <Text className="text-xs text-zinc-500 dark:text-zinc-500">
+                  Goal: {dailyStats.summary.carbs.goal}g
+                </Text>
+              </View>
+              
+              <View className="items-center">
+                <MacroProgressRing 
+                  progress={dailyStats.summary.fat.percentage} 
+                  color="#f59e0b"
+                  isDark={isDark}
+                >
+                  <Text className="text-lg font-semibold text-zinc-900 dark:text-white">
+                    {dailyStats.summary.fat.current}g
+                  </Text>
+                </MacroProgressRing>
+                <Text className="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
+                  Fat
+                </Text>
+                <Text className="text-xs text-zinc-500 dark:text-zinc-500">
+                  Goal: {dailyStats.summary.fat.goal}g
+                </Text>
+              </View>
+            </View>
           </View>
 
-          {/* Meals Section */}
-          <View className="mb-6">
-            <View className="flex-row items-center justify-between mb-3">
-              <Text className="text-lg font-semibold text-zinc-900 dark:text-white">
-                Today's Meals
-              </Text>
-              <Pressable 
-                className="flex-row items-center active:opacity-80"
-                android_ripple={{ color: isDark ? '#ffffff20' : '#00000010' }}
-              >
-                <Text className="text-sm font-medium text-emerald-600 dark:text-emerald-400 mr-1">
-                  See All
-                </Text>
-                <ChevronRight size={16} className="text-emerald-600 dark:text-emerald-400" />
-              </Pressable>
+          {/* Activity Summary */}
+          <View className="bg-white dark:bg-zinc-900 rounded-3xl p-6 mt-4 mb-6 shadow-sm">
+            <Text className="text-lg font-semibold text-zinc-900 dark:text-white mb-4">
+              Today's Activity
+            </Text>
+            
+            <View className="space-y-4">
+              <ActivityMetric
+                icon={Utensils}
+                color="emerald"
+                darkColor="emerald-900/30"
+                label="Meals Logged"
+                sublabel={`Next meal in ${dailyStats.meals.nextIn}`}
+                value={
+                  <View className="flex-row items-center">
+                    <Text className="text-lg font-semibold text-zinc-900 dark:text-white mr-1">
+                      {dailyStats.meals.logged}
+                    </Text>
+                    <Text className="text-sm text-zinc-600 dark:text-zinc-400">
+                      / {dailyStats.meals.logged + dailyStats.meals.remaining}
+                    </Text>
+                  </View>
+                }
+              />
+
+              <ActivityMetric
+                icon={Dumbbell}
+                color="blue"
+                darkColor="blue-900/30"
+                label="Workouts Completed"
+                sublabel={`${dailyStats.workouts.duration} min active today`}
+                value={
+                  <View className="flex-row items-center">
+                    <Text className="text-lg font-semibold text-zinc-900 dark:text-white mr-1">
+                      {dailyStats.workouts.completed}
+                    </Text>
+                    <Text className="text-sm text-zinc-600 dark:text-zinc-400">
+                      / {dailyStats.workouts.completed + dailyStats.workouts.remaining}
+                    </Text>
+                  </View>
+                }
+              />
+
+              <ActivityMetric
+                icon={Flame}
+                color="orange"
+                darkColor="orange-900/30"
+                label="Active Calories"
+                sublabel="Daily goal achieved"
+                value={
+                  <Text className="text-lg font-semibold text-zinc-900 dark:text-white">
+                    {dailyStats.summary.calories.burned}
+                  </Text>
+                }
+              />
             </View>
-
-            {recentMeals.map(meal => (
-              <Pressable
-                key={meal.id}
-                className="flex-row items-center p-4 mb-3 rounded-2xl bg-zinc-100 dark:bg-zinc-800/50 active:opacity-80"
-                android_ripple={{ color: isDark ? '#ffffff20' : '#00000010' }}
-              >
-                <View className="w-12 h-12 rounded-xl mr-4 items-center justify-center bg-white dark:bg-zinc-700">
-                  <Text className="text-lg">🍳</Text>
-                </View>
-                <View className="flex-1">
-                  <Text className="text-base font-medium text-zinc-900 dark:text-white">
-                    {meal.name}
-                  </Text>
-                  <Text className="text-sm text-zinc-600 dark:text-zinc-400">
-                    {meal.time} • {meal.calories} calories
-                  </Text>
-                </View>
-                <ChevronRight size={20} className="text-zinc-400 dark:text-zinc-500" />
-              </Pressable>
-            ))}
-
-            {/* Add Meal Button */}
-            <Pressable
-              onPress={handleAddFood}
-              disabled={isLoading}
-              className={`bg-emerald-500 dark:bg-emerald-600 rounded-2xl p-4 flex-row items-center justify-center shadow-sm active:opacity-80 ${isLoading ? 'opacity-70' : ''}`}
-              android_ripple={{ color: '#ffffff20' }}
-            >
-              {isLoading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <>
-                  <Plus size={20} color="#fff" />
-                  <Text className="text-white font-semibold ml-2">
-                    Add Meal
-                  </Text>
-                </>
-              )}
-            </Pressable>
           </View>
         </View>
       </ScrollView>
